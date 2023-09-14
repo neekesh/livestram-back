@@ -1,0 +1,6 @@
+* WebRTC
+
+** Brief Introduction
+WebRTC(Web Real-Time Communication) is a tool for browser which helps in realtime Communication over perr to peer network.
+IN this project, i am using golang and its package pion for implementing WebRTC. Among many things that we can do in WebRTC such as
+Vidwo Chat, Video Conference, Live Streamming, etc.,  i will  cover on vdieo chatting .
