@@ -1,3 +1,11 @@
 .env
 FirebaseServiceKey.json
 .DS_Store
+docker
+docker-compose.yml
+Makefile
+types
+models
+api/repository
+api/services
+infrastructure/database*
