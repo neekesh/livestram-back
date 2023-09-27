@@ -21,11 +21,20 @@ func NewRoomRoutes(
 }
 
 func (rr RoomRoute) Setup() {
-	Room := rr.router.Gin.Group("rooms").Use()
+	room := rr.router.Gin.Group("rooms").Use()
 	{
-		Room.GET("", rr.roomController.GetAllRoom)
-		Room.POST("/create", rr.roomController.PostRoom)
-		Room.PUT("/update/:id", rr.roomController.UpdateRoom)
-		Room.DELETE("/delete/:id", rr.roomController.DeleteRoom)
+		room.GET("", rr.roomController.GetAllRoom)
+		room.GET("/create", rr.roomController.CreateRoom)
+		room.GET("/:uid", rr.roomController.JoinRoom)
+	}
+	chatRoom := rr.router.Gin.Group("rooms/chat")
+	{
+		chatRoom.GET("/:id", rr.roomController.ChatRoom)
+	}
+	roomWebsockets := rr.router.Gin.Group("rooms/websockets")
+	{
+		roomWebsockets.GET("/:uid", rr.roomController.RoomSocket)
+		roomWebsockets.GET("/chat/:uid", rr.roomController.ChatRoomSocket)
+		roomWebsockets.GET("viewer/:id", rr.roomController.RoomViewerSocket)
 	}
 }
