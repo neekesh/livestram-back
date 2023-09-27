@@ -25,5 +25,4 @@ func bootstrap(
 ) {
 	routes.Setup()
 	handler.Gin.Run(":" + os.Getenv("ServerPort"))
-
 }
