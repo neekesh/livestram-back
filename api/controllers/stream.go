@@ -16,59 +16,65 @@ import (
 	pion "github.com/pion/webrtc/v3"
 )
 
-type WebsocketMessage struct {
-	Event string `json:"event"`
-	Data  string `json:"data"`
+type StreamControllers struct {
+	// Stream repository.StreamRepository
 }
 
-type RoomControllers struct {
-	// Room repository.RoomRepository
+func NewStreamControllers() StreamControllers {
+	return StreamControllers{}
 }
 
-func NewRoomControllers() RoomControllers {
-	return RoomControllers{}
-}
-
-func (rc RoomControllers) GetAllRoom(ctx *gin.Context) {
+func (rc StreamControllers) GetAllStream(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
-		"msg":  "get all teh Room",
-		"data": "Rooms",
+		"msg":  "get all teh Stream",
+		"data": "Streams",
 	})
 }
 
-func (rc RoomControllers) CreateRoom(ctx *gin.Context) {
+func (rc StreamControllers) CreateStream(ctx *gin.Context) {
 	ctx.Redirect(http.StatusFound, fmt.Sprintf("/room/%s", guid.New().String()))
 }
 
-func (rc RoomControllers) JoinRoom(ctx *gin.Context) {
-	uuid := ctx.Param("uid")
-	if uuid == "" {
+func (rc StreamControllers) JoinStream(ctx *gin.Context) {
+	suuid := ctx.Param("suuid")
+	if suuid == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"msg": "unique id is not in the params",
 		})
 	}
 	ws := "ws"
-	uuid, suuid, _ := rc.CreateOrGetRoom(uuid)
-
-	ctx.JSON(http.StatusOK, gin.H{
-		"room_web_socket_addr":  fmt.Sprintf("%s://%s/rooms/websockets/%s", ws, ctx.Request.Host, uuid),
-		"room_link":             fmt.Sprintf("%s://%s/rooms/%s", ctx.Request.URL.Scheme, ctx.Request.Host, uuid),
-		"chat_web_socket_addr":  fmt.Sprintf("%s://%s/rooms/websockets/chat/%s", ws, ctx.Request.Host, uuid),
-		"viewer_websocket_addr": fmt.Sprintf("%s://%s/rooms/websockets/viewer/%s", ws, ctx.Request.Host, uuid),
-		"stream_link":           fmt.Sprintf("%s://%s/stream/%s", ctx.Request.URL.Scheme, ctx.Request.Host, suuid),
-		"type":                  "room",
+	webrtc.RoomsLock.Lock()
+	if _, ok := webrtc.Stream[suuid]; ok {
+		webrtc.RoomsLock.Unlock()
+		ctx.JSON(http.StatusOK, gin.H{
+			"stream_web_socket_addr": fmt.Sprintf("%s://%s/stream/websockets/%s", ws, ctx.Request.Host, suuid),
+			// "room_link":             fmt.Sprintf("%s://%s/rooms/%s", ctx.Request.URL.Scheme, ctx.Request.Host, uuid),
+			"chat_web_socket_addr":  fmt.Sprintf("%s://%s/stream/websockets/chat/%s", ws, ctx.Request.Host, suuid),
+			"viewer_websocket_addr": fmt.Sprintf("%s://%s/stream/websockets/viewer/%s", ws, ctx.Request.Host, suuid),
+			// "stream_link":           fmt.Sprintf("%s://%s/stream/%s", ctx.Request.URL.Scheme, ctx.Request.Host, s  uuid),
+			"type": "stream",
+		})
+		return
+	}
+	webrtc.RoomsLock.Unlock()
+	ctx.JSON(http.StatusBadRequest, gin.H{
+		"stream": "false",
+		"leave":  "true",
 	})
+
+	// uuid, suuid, _ := rc.CreateOrGetStream(uuid)
+	//
 }
 
-func (rc RoomControllers) ChatRoom(ctx *gin.Context) {
+func (rc StreamControllers) ChatStream(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"msg":  "Update Room data",
+		"msg":  "Update Stream data",
 		"data": "",
 	})
 }
 
-func (rc RoomControllers) ChatRoomSocket(ctx *gin.Context) {
+func (rc StreamControllers) ChatStreamSocket(ctx *gin.Context) {
 
 	uuid := ctx.Param("uuid")
 	if uuid != "" {
@@ -76,7 +82,7 @@ func (rc RoomControllers) ChatRoomSocket(ctx *gin.Context) {
 	}
 	webrtc.RooomLock.Lock()
 
-	room := webrtc.Rooms(uuid)
+	room := webrtc.Streams(uuid)
 
 	webrtc.RooomLock.Unlock()
 	if room == nil {
@@ -88,36 +94,36 @@ func (rc RoomControllers) ChatRoomSocket(ctx *gin.Context) {
 	socket := &websocket.Conn{}
 	chat.PeerChatConn(socket, room.Conn)
 	ctx.JSON(http.StatusOK, gin.H{
-		"msg":  "Update Room data",
+		"msg":  "Update Stream data",
 		"data": "",
 	})
 }
 
-func (rc RoomControllers) RoomViewerSocket(ctx *gin.Context) {
+func (rc StreamControllers) StreamViewerSocket(ctx *gin.Context) {
 	uuid := ctx.Param("uuid")
 	if uuid == "" {
 		return
 	}
-	webrtc.RoomsLock.Lock()
-	if peer, ok := webrtc.Rooms(uuid); ok {
-		webrtc.RoomsLock.Unlock()
-		rc.RoomViewerConn(ctx, peer.Peer)
+	webrtc.StreamsLock.Lock()
+	if peer, ok := webrtc.Streams(uuid); ok {
+		webrtc.StreamsLock.Unlock()
+		rc.StreamViewerConn(ctx, peer.Peer)
 		return
 	}
-	webrtc.RoomsLock.Unlock()
+	webrtc.StreamsLock.Unlock()
 	// ctx.JSON(http.StatusOK, gin.H{
-	// 	"msg":  "Update Room data",
+	// 	"msg":  "Update Stream data",
 	// 	"data": "",
 	// })
 }
 
-func (rc RoomControllers) CreateOrGetRoom(uuid string) (string, string, Room) {
-	webrtc.RoomsLock.Lock()
-	defer webrtc.RoomsLock.Unlock()
+func (rc StreamControllers) CreateOrGetStream(uuid string) (string, string, Stream) {
+	webrtc.StreamsLock.Lock()
+	defer webrtc.StreamsLock.Unlock()
 	hash := sha256.new()
 	hash.Write([]byte(uuid))
 	suuid := fmt.Sprintf("%x", hash.Sum(nil))
-	if room := webrtc.Rooms[uuid]; room != nil {
+	if room := webrtc.Streams[uuid]; room != nil {
 		if _, ok := webrtc.Streams[suuid]; !ok {
 			webrtc.Stream[suuid] = room
 		}
@@ -126,24 +132,24 @@ func (rc RoomControllers) CreateOrGetRoom(uuid string) (string, string, Room) {
 	hub := chat.NewHub()
 	peer := &webrtc.Peers{}
 	peer.TrackLocals = make(map[string]*pion.TrackLocalStaticRTP)
-	room := &webrtc.Rooms{
+	room := &webrtc.Streams{
 		Peers: peer,
 		Hub:   hub,
 	}
-	webrtc.Rooms[uuid] = room
+	webrtc.Streams[uuid] = room
 	webrtc.Streams[uuid] = room
 	go hub.Run()
 	return uuis, suuid, room
 }
 
-func (rc RoomControllers) RoomSocket(ctx *gin.Context) {
+func (rc StreamControllers) StreamSocket(ctx *gin.Context) {
 	uuid := ctx.Param("uuid")
 	if uuid == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"msg": "unique id is not in the params",
 		})
 	}
-	_, _, room := rc.CreateOrGetRoom(uuid)
+	_, _, room := rc.CreateOrGetStream(uuid)
 	conn, err := constants.Upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
 		log.Println(err)
@@ -168,7 +174,7 @@ func (rc RoomControllers) RoomSocket(ctx *gin.Context) {
 	}
 }
 
-func (rc RoomControllers) RoomViewerConn(conn *websocket.Conn, peer *webrtc.Peers) {
+func (rc StreamControllers) StreamViewerConn(conn *websocket.Conn, peer *webrtc.Peers) {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 	defer conn.Close()
