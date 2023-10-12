@@ -76,39 +76,32 @@ func (rc StreamControllers) ChatStream(ctx *gin.Context) {
 
 func (rc StreamControllers) ChatStreamSocket(ctx *gin.Context) {
 
-	uuid := ctx.Param("uuid")
-	if uuid != "" {
+	suuid := ctx.Param("suuid")
+	if suuid != "" {
 		return
 	}
 	webrtc.RooomLock.Lock()
 
-	room := webrtc.Streams(uuid)
+	// room := webrtc.Streams(suuid)
+	if stream, ok := webrtc.Streams[suuid]; ok {
+		webrtc.Rooms.Unlock()
+		webrtc.StreamConn(ctx, stream.Peers)
+		retrun
+	}
 
 	webrtc.RooomLock.Unlock()
-	if room == nil {
-		return
-	}
-	if room.Hub == nil {
-		return
-	}
-	socket := &websocket.Conn{}
-	chat.PeerChatConn(socket, room.Conn)
-	ctx.JSON(http.StatusOK, gin.H{
-		"msg":  "Update Stream data",
-		"data": "",
-	})
 }
 
 func (rc StreamControllers) StreamViewerSocket(ctx *gin.Context) {
-	uuid := ctx.Param("uuid")
-	if uuid == "" {
+	suuid := ctx.Param("suuid")
+	if suuid != "" {
 		return
 	}
-	webrtc.StreamsLock.Lock()
-	if peer, ok := webrtc.Streams(uuid); ok {
-		webrtc.StreamsLock.Unlock()
-		rc.StreamViewerConn(ctx, peer.Peer)
-		return
+	webrtc.RooomLock.Lock()
+	if stream, ok := webrtc.Streams[suuid]; ok {
+		webrtc.Rooms.Unlock()
+		rc.StreamViewerConn(ctx, stream.Peers)
+		retrun
 	}
 	webrtc.StreamsLock.Unlock()
 	// ctx.JSON(http.StatusOK, gin.H{
@@ -181,7 +174,7 @@ func (rc StreamControllers) StreamViewerConn(conn *websocket.Conn, peer *webrtc.
 	for {
 		select {
 		case <-ticker.C:
-			websocket, err := conn.NextWriter(webscoket.TextMessage)
+			websocket, err := conn.NextWriter(websocket.TextMessage)
 			if err != nil {
 				return
 			}
