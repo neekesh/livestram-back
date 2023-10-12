@@ -175,7 +175,7 @@ func (rc RoomControllers) RoomViewerConn(conn *websocket.Conn, peer *webrtc.Peer
 	for {
 		select {
 		case <-ticker.C:
-			websocket, err := conn.NextWriter(webscoket.TextMessage)
+			websocket, err := conn.NextWriter(websocket.TextMessage)
 			if err != nil {
 				return
 			}
