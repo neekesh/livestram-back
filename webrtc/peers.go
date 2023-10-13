@@ -87,6 +87,7 @@ func (peer *Peers) SignalPeerConnection() {
 					continue
 				}
 				existingSender[sender.Track().ID()] = true
+
 				if _, ok := peer.TrackLocals[sender.Track().ID()]; !ok {
 					if err := peer.Connections[i].PeerConnection.RemoveTrack(sender); err != nil {
 						return true
