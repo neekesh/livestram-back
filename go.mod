@@ -4,9 +4,10 @@ go 1.21.0
 
 require (
 	github.com/gin-gonic/gin v1.9.1
-	github.com/google/uuid v1.3.1
 	github.com/gorilla/websocket v1.5.0
 	github.com/joho/godotenv v1.5.1
+	github.com/pion/interceptor v0.1.18
+	github.com/pion/randutil v0.1.0
 	github.com/pion/webrtc/v3 v3.2.21
 	go.uber.org/fx v1.20.0
 	gorm.io/driver/postgres v1.5.2
@@ -24,6 +25,7 @@ require (
 	github.com/go-playground/validator/v10 v10.14.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
+	github.com/google/uuid v1.3.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/pgx/v5 v5.3.1 // indirect
@@ -40,10 +42,8 @@ require (
 	github.com/pion/datachannel v1.5.5 // indirect
 	github.com/pion/dtls/v2 v2.2.7 // indirect
 	github.com/pion/ice/v2 v2.3.11 // indirect
-	github.com/pion/interceptor v0.1.18 // indirect
 	github.com/pion/logging v0.2.2 // indirect
 	github.com/pion/mdns v0.0.8 // indirect
-	github.com/pion/randutil v0.1.0 // indirect
 	github.com/pion/rtcp v1.2.10 // indirect
 	github.com/pion/rtp v1.8.1 // indirect
 	github.com/pion/sctp v1.8.8 // indirect

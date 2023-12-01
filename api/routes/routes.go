@@ -5,8 +5,8 @@ import (
 )
 
 var Module = fx.Options(
-	fx.Provide(NewRoomRoutes),
 	fx.Provide(NewRoutes),
+	fx.Provide(NewStreamRoutes),
 )
 
 type Routes []Route
@@ -16,10 +16,10 @@ type Route interface {
 }
 
 func NewRoutes(
-	roomRoutes RoomRoute,
+	streamRoutes StreamRoute,
 ) Routes {
 	return Routes{
-		roomRoutes,
+		streamRoutes,
 	}
 }
 

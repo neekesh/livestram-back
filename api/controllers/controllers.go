@@ -3,5 +3,5 @@ package controllers
 import "go.uber.org/fx"
 
 var Module = fx.Options(
-	fx.Provide(NewRoomControllers),
+	fx.Provide(NewStreamControllers),
 )
